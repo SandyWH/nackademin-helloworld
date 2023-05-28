@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # nackademin-helloworld
 
 > A simple hello world application for Nackademin's course DE22
@@ -68,3 +69,7 @@ cd build
 ```sh
 docker run -d -p 8080:8080 --name endpoint endpoint:<version>
 ```
+=======
+# DE22
+Uppgifter
+>>>>>>> ab8b8921ca80762a27edbe8110dfa083503b7355
