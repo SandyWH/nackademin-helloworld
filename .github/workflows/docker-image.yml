@@ -1,30 +1,58 @@
-name: Docker Image CI
+name: CI/CD
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  push:
+    branches:
+      - 'dev*'
+    tags:
+      - 'v*.*.*' # 匹配以 "v" 开头的版本号标签
 
 jobs:
-
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-    
-    - name: Log in to GitHub Packages
-      uses: docker/login-action@v1
-      with:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.4,
+
+      - name: Build and test
+        run: |
+          go build ./...
+          go test ./...
+
+  build-and-publish-docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.4
+
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+
+      - name: Log in to GitHub Packages
+        uses: docker/login-action@v1
+        with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Push Docker image to GitHub Packages
-      run: |
+      - name: Push Docker image to GitHub Packages
+        run: |
           docker tag my-image-name:$(date +%s) ghcr.io/SandyWH/nackademin-helloworld:$(date +%s)
           docker push ghcr.io/SandyWH/nackademin-helloworld:$(date +%s)
+
